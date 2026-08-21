@@ -8,16 +8,6 @@
     ]
   },
   {
-    "title": "[WASI-Crypto] Implement remaining functions",
-    "url": "https://github.com/WasmEdge/WasmEdge/issues/2669",
-    "issue_number": "#2669",
-    "labels": [
-      "WASI-Crypto",
-      "good first issue",
-      "help wanted"
-    ]
-  },
-  {
     "title": "Python SDK progress tracking",
     "url": "https://github.com/WasmEdge/WasmEdge/issues/2077",
     "issue_number": "#2077",
@@ -25,6 +15,16 @@
       "binding-python",
       "enhancement",
       "good first issue"
+    ]
+  },
+  {
+    "title": "[WASI-Crypto] Implement remaining functions",
+    "url": "https://github.com/WasmEdge/WasmEdge/issues/2669",
+    "issue_number": "#2669",
+    "labels": [
+      "WASI-Crypto",
+      "good first issue",
+      "help wanted"
     ]
   }
 ]

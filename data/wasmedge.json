@@ -4,12 +4,8 @@
     "url": "https://github.com/WasmEdge/WasmEdge/issues/551",
     "issue_number": "#551",
     "labels": [
-      "good first issue",
       "good first issue"
-    ],
-    "input": {
-      "url": "https://github.com/WasmEdge/WasmEdge/issues?q=is:open+is:issue+label:%22good+first+issue%22"
-    }
+    ]
   },
   {
     "title": "Python SDK progress tracking",
@@ -18,14 +14,8 @@
     "labels": [
       "binding-python",
       "enhancement",
-      "good first issue",
-      "binding-python",
-      "enhancement",
       "good first issue"
-    ],
-    "input": {
-      "url": "https://github.com/WasmEdge/WasmEdge/issues?q=is:open+is:issue+label:%22good+first+issue%22"
-    }
+    ]
   },
   {
     "title": "[WASI-Crypto] Implement remaining functions",
@@ -34,13 +24,7 @@
     "labels": [
       "WASI-Crypto",
       "good first issue",
-      "help wanted",
-      "WASI-Crypto",
-      "good first issue",
       "help wanted"
-    ],
-    "input": {
-      "url": "https://github.com/WasmEdge/WasmEdge/issues?q=is:open+is:issue+label:%22good+first+issue%22"
-    }
+    ]
   }
 ]

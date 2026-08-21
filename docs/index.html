@@ -359,12 +359,13 @@
       }
       renderIssues(container, countEl, issues);
     } catch (err) {
-      container.innerHTML = '<p class="state-msg error">Could not load data. If you opened this file directly, serve it over http(s) instead (e.g. GitHub Pages, or <code>python3 -m http.server</code>) &mdash; browsers block local file fetches.</p>';
+      container.innerHTML = '<p class="state-msg error">Could not load data from GitHub. Check your connection, or that data/' + file.split('/').pop() + ' exists on the main branch.</p>';
     }
   }
 
-  loadRepo('../data/wasmedge.json', 'wasmedge-issues', 'wasmedge-count');
-  loadRepo('../data/bpfman.json', 'bpfman-issues', 'bpfman-count');
+  const RAW_BASE = 'https://raw.githubusercontent.com/shreya-d2604/spidey-sense/main/data/';
+  loadRepo(RAW_BASE + 'wasmedge.json', 'wasmedge-issues', 'wasmedge-count');
+  loadRepo(RAW_BASE + 'bpfman.json', 'bpfman-issues', 'bpfman-count');
 </script>
 
 </body>

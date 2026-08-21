@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spidey-Sense</title>
+<meta name="description" content="Self-healing GitHub issue radar for CNCF sandbox projects.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2244%22 fill=%22%2308080b%22/><circle cx=%2250%22 cy=%2250%22 r=%2226%22 fill=%22none%22 stroke=%22%23e21f3d%22 stroke-width=%228%22/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #08080b;
+    --bg-elevated: #111116;
+    --card-border: rgba(255,255,255,0.08);
+    --card-border-hover: rgba(226,31,61,0.45);
+    --red: #e21f3d;
+    --red-dim: rgba(226,31,61,0.16);
+    --text: #f2f2f5;
+    --text-dim: #9a9aa6;
+    --text-faint: #5c5c66;
+    --font-display: 'Bebas Neue', 'Arial Narrow', sans-serif;
+    --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a { color: inherit; text-decoration: none; }
+
+  /* ---------- Hero ---------- */
+
+  .hero {
+    position: relative;
+    min-height: 62vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 6rem 1.5rem 4rem;
+    overflow: hidden;
+    isolation: isolate;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    background:
+      radial-gradient(ellipse 60% 50% at 85% 15%, rgba(226,31,61,0.13), transparent 60%),
+      radial-gradient(ellipse 50% 40% at 10% 90%, rgba(226,31,61,0.08), transparent 60%);
+  }
+
+  .web-lines {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    width: 100%;
+    height: 100%;
+    opacity: 0.1;
+  }
+
+  .eyebrow {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 1.25rem;
+  }
+
+  .eyebrow::before {
+    content: '';
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--red);
+    margin-right: 0.6em;
+    box-shadow: 0 0 8px 1px var(--red);
+    vertical-align: middle;
+  }
+
+  .title {
+    font-family: var(--font-display);
+    font-size: clamp(3.5rem, 12vw, 7.5rem);
+    letter-spacing: 0.04em;
+    line-height: 0.95;
+    margin: 0;
+    background: linear-gradient(180deg, #ffffff 0%, #d8d8dd 60%, #a9a9b2 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .title .dash {
+    color: var(--red);
+    -webkit-text-fill-color: var(--red);
+    text-shadow: 0 0 28px rgba(226,31,61,0.55);
+  }
+
+  .subtitle {
+    max-width: 34rem;
+    margin: 1.5rem auto 0;
+    color: var(--text-dim);
+    font-size: 1.05rem;
+    line-height: 1.6;
+  }
+
+  .ping {
+    position: relative;
+    width: 14px;
+    height: 14px;
+    margin: 2.75rem auto 0;
+  }
+
+  .ping span {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 1.5px solid var(--red);
+  }
+
+  .ping span:nth-child(1) { animation: ping-out 2.4s ease-out infinite; }
+  .ping span:nth-child(2) { animation: ping-out 2.4s ease-out infinite; animation-delay: 0.8s; }
+  .ping .core {
+    position: absolute;
+    inset: 5px;
+    border-radius: 50%;
+    background: var(--red);
+    box-shadow: 0 0 12px 2px rgba(226,31,61,0.7);
+  }
+
+  @keyframes ping-out {
+    0%   { transform: scale(1);   opacity: 0.9; }
+    100% { transform: scale(9);   opacity: 0; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ping span { animation: none; opacity: 0.4; }
+  }
+
+  /* ---------- Board ---------- */
+
+  .board {
+    max-width: 76rem;
+    margin: 0 auto;
+    padding: 0 1.5rem 6rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+  }
+
+  @media (max-width: 860px) {
+    .board { grid-template-columns: 1fr; }
+  }
+
+  .repo-col-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding-bottom: 0.9rem;
+    margin-bottom: 1.1rem;
+    border-bottom: 1px solid var(--card-border);
+  }
+
+  .repo-name {
+    font-family: var(--font-display);
+    font-size: 1.6rem;
+    letter-spacing: 0.02em;
+  }
+
+  .repo-count {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .issues {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .issue-card {
+    display: block;
+    background: var(--bg-elevated);
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    padding: 1rem 1.15rem;
+    transition: border-color 0.15s ease, transform 0.15s ease;
+  }
+
+  .issue-card:hover {
+    border-color: var(--card-border-hover);
+    transform: translateY(-1px);
+  }
+
+  .issue-top {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .issue-number {
+    font-size: 0.75rem;
+    color: var(--text-faint);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .issue-title {
+    font-size: 0.95rem;
+    font-weight: 500;
+    line-height: 1.4;
+    margin: 0 0 0.6rem;
+  }
+
+  .labels {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .label {
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    background: var(--red-dim);
+    color: #ff8a97;
+  }
+
+  .state-msg {
+    color: var(--text-dim);
+    font-size: 0.9rem;
+    padding: 1rem 0;
+  }
+
+  .state-msg.error { color: #ff8a97; }
+
+  /* ---------- Footer ---------- */
+
+  footer {
+    text-align: center;
+    padding: 2.5rem 1.5rem 3.5rem;
+    color: var(--text-faint);
+    font-size: 0.8rem;
+    border-top: 1px solid var(--card-border);
+  }
+
+  footer a { color: var(--text-dim); }
+  footer a:hover { color: var(--red); }
+</style>
+</head>
+<body>
+
+<section class="hero">
+  <svg class="web-lines" preserveAspectRatio="xMidYMid slice" viewBox="0 0 1200 700">
+    <g stroke="#e21f3d" stroke-width="1" fill="none">
+      <circle cx="600" cy="120" r="90"/>
+      <circle cx="600" cy="120" r="180"/>
+      <circle cx="600" cy="120" r="280"/>
+      <circle cx="600" cy="120" r="400"/>
+      <line x1="600" y1="120" x2="600" y2="-100"/>
+      <line x1="600" y1="120" x2="900" y2="-20"/>
+      <line x1="600" y1="120" x2="1150" y2="220"/>
+      <line x1="600" y1="120" x2="1050" y2="600"/>
+      <line x1="600" y1="120" x2="650" y2="720"/>
+      <line x1="600" y1="120" x2="150" y2="600"/>
+      <line x1="600" y1="120" x2="50" y2="220"/>
+      <line x1="600" y1="120" x2="300" y2="-20"/>
+    </g>
+  </svg>
+
+  <p class="eyebrow">CNCF Sandbox &middot; Good First Issue Radar</p>
+  <h1 class="title">SPIDEY<span class="dash">-</span>SENSE</h1>
+  <p class="subtitle">
+    A self-healing scraper radar watching WasmEdge and bpfman-operator for
+    good first issues &mdash; built on Bright Data Scraper Studio, and
+    repaired automatically when the page structure shifts underneath it.
+  </p>
+  <div class="ping"><span></span><span></span><div class="core"></div></div>
+</section>
+
+<main class="board">
+  <section>
+    <div class="repo-col-head">
+      <a class="repo-name" href="https://github.com/WasmEdge/WasmEdge/issues?q=is:open+is:issue+label:%22good+first+issue%22" target="_blank" rel="noopener">WasmEdge</a>
+      <span class="repo-count" id="wasmedge-count"></span>
+    </div>
+    <div class="issues" id="wasmedge-issues">
+      <p class="state-msg">Scanning&hellip;</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="repo-col-head">
+      <a class="repo-name" href="https://github.com/bpfman/bpfman-operator/issues?q=is:open+is:issue+label:%22good+first+issue%22" target="_blank" rel="noopener">bpfman-operator</a>
+      <span class="repo-count" id="bpfman-count"></span>
+    </div>
+    <div class="issues" id="bpfman-issues">
+      <p class="state-msg">Scanning&hellip;</p>
+    </div>
+  </section>
+</main>
+
+<footer>
+  Data scraped and self-healed via
+  <a href="https://brightdata.com" target="_blank" rel="noopener">Bright Data Scraper Studio</a>
+  &middot;
+  <a href="https://github.com/shreya-d2604/spidey-sense" target="_blank" rel="noopener">View source</a>
+</footer>
+
+<script>
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str ?? '';
+    return div.innerHTML;
+  }
+
+  function renderIssues(container, countEl, issues) {
+    countEl.textContent = issues.length + (issues.length === 1 ? ' issue' : ' issues');
+    container.innerHTML = issues.map(issue => `
+      <a class="issue-card" href="${escapeHtml(issue.url)}" target="_blank" rel="noopener">
+        <div class="issue-top">
+          <span class="issue-number">${escapeHtml(issue.issue_number)}</span>
+        </div>
+        <h3 class="issue-title">${escapeHtml(issue.title)}</h3>
+        <div class="labels">
+          ${issue.labels.map(l => `<span class="label">${escapeHtml(l)}</span>`).join('')}
+        </div>
+      </a>
+    `).join('');
+  }
+
+  async function loadRepo(file, containerId, countId) {
+    const container = document.getElementById(containerId);
+    const countEl = document.getElementById(countId);
+    try {
+      const res = await fetch(file);
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const issues = await res.json();
+      if (!Array.isArray(issues) || issues.length === 0) {
+        container.innerHTML = '<p class="state-msg">No open good-first-issues right now.</p>';
+        countEl.textContent = '0 issues';
+        return;
+      }
+      renderIssues(container, countEl, issues);
+    } catch (err) {
+      container.innerHTML = '<p class="state-msg error">Could not load data. If you opened this file directly, serve it over http(s) instead (e.g. GitHub Pages, or <code>python3 -m http.server</code>) &mdash; browsers block local file fetches.</p>';
+    }
+  }
+
+  loadRepo('../data/wasmedge.json', 'wasmedge-issues', 'wasmedge-count');
+  loadRepo('../data/bpfman.json', 'bpfman-issues', 'bpfman-count');
+</script>
+
+</body>
+</html>

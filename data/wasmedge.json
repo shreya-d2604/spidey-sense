@@ -1,15 +1,5 @@
 [
   {
-    "title": "Python SDK progress tracking",
-    "url": "https://github.com/WasmEdge/WasmEdge/issues/2077",
-    "issue_number": "#2077",
-    "labels": [
-      "binding-python",
-      "enhancement",
-      "good first issue"
-    ]
-  },
-  {
     "title": "[Community] Claim your WasmEdge Swag bag!",
     "url": "https://github.com/WasmEdge/WasmEdge/issues/551",
     "issue_number": "#551",
@@ -25,6 +15,16 @@
       "WASI-Crypto",
       "good first issue",
       "help wanted"
+    ]
+  },
+  {
+    "title": "Python SDK progress tracking",
+    "url": "https://github.com/WasmEdge/WasmEdge/issues/2077",
+    "issue_number": "#2077",
+    "labels": [
+      "binding-python",
+      "enhancement",
+      "good first issue"
     ]
   }
 ]

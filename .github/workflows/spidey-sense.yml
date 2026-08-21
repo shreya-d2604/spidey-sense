@@ -24,7 +24,9 @@ jobs:
         run: npm install -g @brightdata/cli@0.3.5
 
       - name: Run scraper
-        run: bdata scraper run "$COLLECTOR_ID" "$TARGET_URL" -o data/wasmedge.json --pretty
+        run: |
+          bdata scraper run "$COLLECTOR_ID" "$TARGET_URL" -o data/wasmedge.json
+          python3 scripts/prettify.py data/wasmedge.json
 
       - name: Validate output
         id: validate
@@ -37,7 +39,8 @@ jobs:
           bdata scraper heal "$COLLECTOR_ID" \
             "Automated validation failed for wasmedge scraper output: each issue must have a non-null title, url, and at least one label. Inspect the current extraction against the live page and repair it." \
             --auto-approve
-          bdata scraper run "$COLLECTOR_ID" "$TARGET_URL" -o data/wasmedge.json --pretty
+          bdata scraper run "$COLLECTOR_ID" "$TARGET_URL" -o data/wasmedge.json
+          python3 scripts/prettify.py data/wasmedge.json
           python3 scripts/validate.py data/wasmedge.json
 
       - name: Commit updated data
@@ -72,7 +75,9 @@ jobs:
         run: npm install -g @brightdata/cli@0.3.5
 
       - name: Run scraper
-        run: bdata scraper run "$COLLECTOR_ID" "$TARGET_URL" -o data/bpfman.json --pretty
+        run: |
+          bdata scraper run "$COLLECTOR_ID" "$TARGET_URL" -o data/bpfman.json
+          python3 scripts/prettify.py data/bpfman.json
 
       - name: Validate output
         id: validate
@@ -85,7 +90,8 @@ jobs:
           bdata scraper heal "$COLLECTOR_ID" \
             "Automated validation failed for bpfman scraper output: each issue must have a non-null title, url, and at least one label. Inspect the current extraction against the live page and repair it." \
             --auto-approve
-          bdata scraper run "$COLLECTOR_ID" "$TARGET_URL" -o data/bpfman.json --pretty
+          bdata scraper run "$COLLECTOR_ID" "$TARGET_URL" -o data/bpfman.json
+          python3 scripts/prettify.py data/bpfman.json
           python3 scripts/validate.py data/bpfman.json
 
       - name: Commit updated data

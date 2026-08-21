@@ -1,0 +1,102 @@
+name: Spidey-Sense
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  wasmedge:
+    runs-on: ubuntu-latest
+    env:
+      BRIGHTDATA_API_KEY: ${{ secrets.BRIGHTDATA_API_KEY }}
+      COLLECTOR_ID: c_mt35fgejp9fp62uah
+      TARGET_URL: "https://github.com/WasmEdge/WasmEdge/issues?q=is:open+is:issue+label:%22good+first+issue%22"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Bright Data CLI
+        run: npm install -g @brightdata/cli@0.3.5
+
+      - name: Run scraper
+        run: bdata scraper run "$COLLECTOR_ID" "$TARGET_URL" -o data/wasmedge.json --pretty
+
+      - name: Validate output
+        id: validate
+        run: python3 scripts/validate.py data/wasmedge.json
+        continue-on-error: true
+
+      - name: Heal, re-run, and re-validate
+        if: steps.validate.outcome == 'failure'
+        run: |
+          bdata scraper heal "$COLLECTOR_ID" \
+            "Automated validation failed for wasmedge scraper output: each issue must have a non-null title, url, and at least one label. Inspect the current extraction against the live page and repair it." \
+            --auto-approve
+          bdata scraper run "$COLLECTOR_ID" "$TARGET_URL" -o data/wasmedge.json --pretty
+          python3 scripts/validate.py data/wasmedge.json
+
+      - name: Commit updated data
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/wasmedge.json
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Update wasmedge issue data"
+            git push origin HEAD:${{ github.ref_name }}
+          fi
+
+  bpfman:
+    needs: wasmedge
+    if: always()
+    runs-on: ubuntu-latest
+    env:
+      BRIGHTDATA_API_KEY: ${{ secrets.BRIGHTDATA_API_KEY }}
+      COLLECTOR_ID: c_mt35mnl52ir8v9u3z7
+      TARGET_URL: "https://github.com/bpfman/bpfman-operator/issues?q=is:open+is:issue+label:%22good+first+issue%22"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Bright Data CLI
+        run: npm install -g @brightdata/cli@0.3.5
+
+      - name: Run scraper
+        run: bdata scraper run "$COLLECTOR_ID" "$TARGET_URL" -o data/bpfman.json --pretty
+
+      - name: Validate output
+        id: validate
+        run: python3 scripts/validate.py data/bpfman.json
+        continue-on-error: true
+
+      - name: Heal, re-run, and re-validate
+        if: steps.validate.outcome == 'failure'
+        run: |
+          bdata scraper heal "$COLLECTOR_ID" \
+            "Automated validation failed for bpfman scraper output: each issue must have a non-null title, url, and at least one label. Inspect the current extraction against the live page and repair it." \
+            --auto-approve
+          bdata scraper run "$COLLECTOR_ID" "$TARGET_URL" -o data/bpfman.json --pretty
+          python3 scripts/validate.py data/bpfman.json
+
+      - name: Commit updated data
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/bpfman.json
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Update bpfman issue data"
+            git push origin HEAD:${{ github.ref_name }}
+          fi

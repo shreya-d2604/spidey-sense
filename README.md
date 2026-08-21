@@ -1,109 +1,56 @@
 # Spidey-Sense
 
-A self-healing GitHub issue radar for CNCF sandbox projects. It watches the
-"good first issue" listings on two CNCF sandbox repos, keeps a structured,
-always-fresh copy of that data in this repo, and repairs its own scraper
-automatically if GitHub ever changes the page structure underneath it.
+A self-healing GitHub issue radar. It watches "good first issue" listings on
+CNCF sandbox repos, keeps a structured copy of that data in this repo, and
+repairs its own scraper automatically if the source page's structure changes.
 
 Built for the WeMakeDevs **"Into the Scrape-Verse"** hackathon (Bright Data track).
 
 **Live dashboard:** https://shreya-d2604.github.io/spidey-sense/
 **Demo video:** _(added after recording)_
 
-## The problem
+## Why
 
-CNCF sandbox projects rely on "good first issue" labels to funnel new
-contributors in, but that list only has value if someone's actually watching
-it — and the watching breaks the moment the source page's structure changes,
-usually silently. Spidey-Sense turns that into an unattended pipeline: scrape,
-validate, and if the scrape looks broken, ask Bright Data's AI to repair the
-scraper and try again — no human required to keep the radar accurate.
+A "good first issue" radar only helps if it stays accurate, and scrapers
+silently break the moment a site's markup shifts. Instead of someone
+noticing and fixing it by hand, Spidey-Sense validates every scrape and, if
+it looks broken, asks Bright Data's AI to repair the collector and retry —
+unattended.
 
-Targets:
+## Targets
+
 - [WasmEdge](https://github.com/WasmEdge/WasmEdge) (Rust/Wasm)
 - [bpfman-operator](https://github.com/bpfman/bpfman-operator) (eBPF)
 
-Both are public repos, no login required, real open issues.
+Two targets here as a proof of concept — the same create → run → validate →
+heal loop scales to tracking many more projects at once; adding one is just
+another collector plus another job in the workflow.
 
 ## How Bright Data Scraper Studio is used
 
-This project's scrapers are **custom AI-generated collectors**, not entries
-from Bright Data's pre-built scraper library — GitHub issue listings aren't
-among their 800+ pre-built scrapers, so each one was built from scratch with
-`bdata scraper create`:
+Each target is a custom AI-generated collector (`bdata scraper create`), not
+a pre-built one — GitHub issue listings aren't in Bright Data's pre-built
+scraper library:
 
-```bash
-bdata scraper create \
-  "https://github.com/WasmEdge/WasmEdge/issues?q=is:open+is:issue+label:%22good+first+issue%22" \
-  "Extract open GitHub issues: title, url, labels, issue number" \
-  --name wasmedge-issues -o scrapers/wasmedge.create.json
+| Target | Collector ID |
+|---|---|
+| WasmEdge | `c_mt35fgejp9fp62uah` |
+| bpfman-operator | `c_mt35mnl52ir8v9u3z7` |
 
-bdata scraper create \
-  "https://github.com/bpfman/bpfman-operator/issues?q=is:open+is:issue+label:%22good+first+issue%22" \
-  "Extract open GitHub issues: title, url, labels, issue number" \
-  --name bpfman-issues -o scrapers/bpfman.create.json
-```
+The pipeline, per target:
+1. `bdata scraper run <collector_id> <url> -o data/<target>.json`
+2. `scripts/validate.py` checks the result (valid JSON, non-empty, every
+   issue has a title/url/label)
+3. If it fails: `bdata scraper heal <collector_id> "<what looked broken>" --auto-approve`,
+   then re-run and re-validate. `--auto-approve` is required — heal stops at
+   a human approval gate by default, which would hang an unattended CI run.
+4. Commit `data/*.json` back to the repo
 
-Each call kicks off Bright Data's AI pipeline (intent analysis → planning →
-discovery → schema generation → code generation → preview), and returns a
-Collector ID. These are the two collectors this project runs against —
-proof of the create-and-run workflow the hackathon asks for:
+The demo video shows this with a **manually triggered break** (via `heal`
+itself, asked to corrupt the title extraction) — GitHub redesigning its own
+page isn't something we can trigger on cue.
 
-| Target | Collector ID | Config |
-|---|---|---|
-| WasmEdge | `c_mt35fgejp9fp62uah` | [scrapers/wasmedge.create.json](scrapers/wasmedge.create.json) |
-| bpfman-operator | `c_mt35mnl52ir8v9u3z7` | [scrapers/bpfman.create.json](scrapers/bpfman.create.json) |
-
-A collector is triggered with `bdata scraper run <collector_id> <url>`, which
-returns structured JSON straight from the live page.
-
-### Self-healing
-
-If [scripts/validate.py](scripts/validate.py) rejects a scrape (bad JSON,
-empty result, or an issue missing its title/url/labels), the pipeline calls:
-
-```bash
-bdata scraper heal <collector_id> "<description of what looked broken>" --auto-approve
-```
-
-`heal` re-analyzes the live page with AI and patches the collector's
-extraction logic in place. `--auto-approve` matters here: Bright Data's heal
-flow is human-in-the-loop by default and stops at an approval gate — without
-that flag, an unattended CI run would just hang waiting for a person to
-approve the fix. After healing, the pipeline re-runs and re-validates before
-committing anything.
-
-The demo video shows this end-to-end with a **manually triggered break** —
-we can't control when GitHub actually redesigns its issues page, so the
-break shown on camera was introduced on purpose (via `bdata scraper heal`
-itself, asked to corrupt the title extraction) to prove the recovery path
-works, not because GitHub broke on cue.
-
-## Architecture
-
-```mermaid
-flowchart LR
-    A["bdata scraper create"] --> B["Collector on Bright Data"]
-    B --> C["bdata scraper run"]
-    C --> D["data/*.json"]
-    D --> E["clean.py"]
-    E --> F["validate.py"]
-    F -->|pass| G["git commit"]
-    F -->|fail| H["bdata scraper heal --auto-approve"]
-    H --> C
-    G --> I["docs/index.html dashboard"]
-```
-
-The two targets run as independent jobs in GitHub Actions
-([.github/workflows/spidey-sense.yml](.github/workflows/spidey-sense.yml)) —
-one failing to heal doesn't block the other from running. Whatever the final
-result is gets committed back into `data/*.json`, which both `docs/index.html`
-(the dashboard) and this README's example output below are always reflecting.
-
-## Setup & run
-
-**Prerequisites:** Node.js ≥ 20, a [Bright Data](https://brightdata.com) API
-key.
+## Setup
 
 ```bash
 git clone https://github.com/shreya-d2604/spidey-sense.git
@@ -111,75 +58,39 @@ cd spidey-sense
 npm install -g @brightdata/cli@0.3.5
 ```
 
-**Run a scrape locally** (uses the `BRIGHTDATA_API_KEY` env var, or
-`bdata login -k <key>`):
+Run a scrape locally (needs `BRIGHTDATA_API_KEY` set, or `bdata login -k <key>`):
 
 ```bash
-bdata scraper run c_mt35fgejp9fp62uah \
-  "https://github.com/WasmEdge/WasmEdge/issues?q=is:open+is:issue+label:%22good+first+issue%22" \
-  -o data/wasmedge.json
+bdata scraper run c_mt35fgejp9fp62uah "<target url>" -o data/wasmedge.json
 python3 scripts/clean.py data/wasmedge.json
 python3 scripts/validate.py data/wasmedge.json
 ```
 
-The collector IDs above are tied to this project's Bright Data account. To
-reproduce the whole pipeline against your own account, run the `scraper
-create` commands from the section above first, then substitute the
-resulting Collector IDs.
+The collector IDs above are tied to this project's Bright Data account —
+run `scraper create` yourself first to reproduce with your own.
 
-**Run in CI:**
-1. Add `BRIGHTDATA_API_KEY` as a repository secret (Settings → Secrets and
-   variables → Actions)
-2. Actions tab → **Spidey-Sense** → **Run workflow**
+To run in CI: add `BRIGHTDATA_API_KEY` as a repo secret, then Actions →
+**Spidey-Sense** → **Run workflow**. No tokens are committed to the repo.
 
-**View the dashboard:**
-- Live: https://shreya-d2604.github.io/spidey-sense/
-- Locally: serve the repo root (`python3 -m http.server`) and open
-  `docs/index.html` — it reads data straight from GitHub, so a plain
-  double-click won't load anything.
-
-## Example structured output
+## Example output
 
 From [data/wasmedge.json](data/wasmedge.json):
 
 ```json
-[
-  {
-    "title": "[Community] Claim your WasmEdge Swag bag!",
-    "url": "https://github.com/WasmEdge/WasmEdge/issues/551",
-    "issue_number": "#551",
-    "labels": ["good first issue"]
-  },
-  {
-    "title": "Python SDK progress tracking",
-    "url": "https://github.com/WasmEdge/WasmEdge/issues/2077",
-    "issue_number": "#2077",
-    "labels": ["binding-python", "enhancement", "good first issue"]
-  }
-]
+{
+  "title": "[Community] Claim your WasmEdge Swag bag!",
+  "url": "https://github.com/WasmEdge/WasmEdge/issues/551",
+  "issue_number": "#551",
+  "labels": ["good first issue"]
+}
 ```
-
-## Repo structure
-
-```
-scrapers/    Collector configs from `bdata scraper create` (one per target)
-data/        Scraped issue JSON — committed every CI run
-scripts/     validate.py (checks scrape health), clean.py (dedupes/formats)
-docs/        Static dashboard, deployed via GitHub Pages
-.github/     The self-healing CI workflow
-```
-
-## Security
-
-No API tokens or `.env` files are committed. `BRIGHTDATA_API_KEY` is read
-from a GitHub Actions secret in CI and from the local `bdata` credential
-store during development.
 
 ## AI-assistance disclosure
 
 Claude Code was used for scaffolding, debugging, and drafting the scraper
-CLI invocations, validation/cleaning scripts, CI workflow, and this
-dashboard. All scraper logic, CI design, and self-healing behavior were
-directed, reviewed, and verified end-to-end by the author, including live
-runs against both target repos and a real (manually triggered) break-and-heal
-cycle.
+commands, validation script, and CI workflow. Scraper logic and CI design
+were directed, reviewed, and verified end-to-end by the author.
+
+## Maintainer
+
+Built by Shreya for WeMakeDevs' Into the Scrape-Verse hackathon.

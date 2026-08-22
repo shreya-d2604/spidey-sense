@@ -40,6 +40,10 @@ python3 scripts/clean.py data/wasmedge.json && python3 scripts/validate.py data/
 To run in CI: add `BRIGHTDATA_API_KEY` as a repo secret, then Actions →
 **Spidey-Sense** → **Run workflow**.
 
+## AI Assistance
+
+Claude was used to help build this project.
+
 ## Maintainer
 
 Built by Shreya for WeMakeDevs' Into the Scrape-Verse hackathon.

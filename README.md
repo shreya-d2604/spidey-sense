@@ -7,7 +7,7 @@ repair its own collector if a page's structure changes — no human needed.
 Built for WeMakeDevs' **Into the Scrape-Verse** hackathon (Bright Data track).
 
 **Live dashboard:** https://shreya-d2604.github.io/spidey-sense/
-**Demo video:** _(added after recording)_
+
 
 ## Targets
 

@@ -1,16 +1,8 @@
 [
   {
-    "title": "integration tests should validate packet count",
-    "url": "https://github.com/bpfman/bpfman-operator/issues/385",
-    "issue_number": "#385",
-    "labels": [
-      "good first issue"
-    ]
-  },
-  {
-    "title": "Add more unit tests for the bpfman-operator",
-    "url": "https://github.com/bpfman/bpfman-operator/issues/400",
-    "issue_number": "#400",
+    "title": "bpfman.io/ProgramName is not a ProgramName anymore",
+    "url": "https://github.com/bpfman/bpfman-operator/issues/414",
+    "issue_number": "#414",
     "labels": [
       "good first issue"
     ]
@@ -24,9 +16,17 @@
     ]
   },
   {
-    "title": "bpfman.io/ProgramName is not a ProgramName anymore",
-    "url": "https://github.com/bpfman/bpfman-operator/issues/414",
-    "issue_number": "#414",
+    "title": "integration tests should validate packet count",
+    "url": "https://github.com/bpfman/bpfman-operator/issues/385",
+    "issue_number": "#385",
+    "labels": [
+      "good first issue"
+    ]
+  },
+  {
+    "title": "Add more unit tests for the bpfman-operator",
+    "url": "https://github.com/bpfman/bpfman-operator/issues/400",
+    "issue_number": "#400",
     "labels": [
       "good first issue"
     ]
